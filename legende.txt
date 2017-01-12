@@ -1,0 +1,34 @@
+Poles d’activites
+AA - Digestif
+AB - Orthopedie, Rhumatologie
+AC - Uro-nephrologie
+AD - Systeme nerveux
+AE - Cardiologie
+AF - Vasculaire peripherique
+AG - Pneumologie
+AH - ORL, Stomatologie
+AI - Ophtalmologie
+AJ - Gynecologie
+AK - Obstetrique
+AL - Nouveau-nes
+AM - Hematologie
+AN - Chimiotherapie, radiotherapie, transfusion
+AO - Endocrinologie
+AP - Tissu cutane et tissu sous-cutane (dont chir obesite)
+AQ - Brulures
+AR - Maladies infectieuses (hors VIH)
+AS - Maladie VIH
+AU - Traumatismes multiples ou complexes graves
+AV - Psychiatrie, Toxicologie, Intoxications, Alcool
+AX - Autres prises en charge
+AZ - Vasculaire interventionnel
+Type d’etablissement
+CH1 - Centre hospitalier de type 1
+CH2 - Centre hospitalier de type 2
+CH3 - Centre hospitalier de type 3
+CH4 - Centre hospitalier de type 4
+CHU - Centre hospitalier universitaire
+CLC - Centre de lutte contre le cancer
+HL  - Hopital Local
+PR  - Etablissement prive
+PSP - Etablissement participant au service public
