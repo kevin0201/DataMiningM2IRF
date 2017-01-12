@@ -1,6 +1,8 @@
 # DataMiningM2IRF
 
-## Scripts du cours de Data Mining
+## Data mining projet M2
+
+## Classification de données  et apprentissage automatique
 
 ## M2 IRF
 
