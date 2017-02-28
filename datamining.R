@@ -3,6 +3,7 @@
 # -----------------------
 
 
+
 library(plotly)
 library(classInt)
 library(ade4)
@@ -11,12 +12,6 @@ library(ade4)
 ############################################
 df = read.csv("Hopitaux.csv")
 dff = df
-
-
-# On se débarasse de la colonne qui contient le type d'établissement
-
-df = df[,-1]
-
 boxplot(df[,2:ncol(df)], use.cols = T)
 
 # Nombre de type d'établissement
@@ -43,6 +38,11 @@ df4 = df3[-which.max(x =df3[,"AC"]),]
 df5 = df4[-which.max(x =df4[,"AS"]),]
 df5 = df5[-which.max(x =df5[,"AI"]),]
 df5 = df5[-which.max(x =df5[,"AI"]),]
+
+# On sauvegarde puis on se debarasse de la colonne du type d'établissement
+type_etab = as.data.frame( df5[,1])
+
+df5 = df5[,-1]
 
 # Observation du boxplot 
 
@@ -102,8 +102,6 @@ for (k in 1:ncol(df5))
     }
 }
 
-#Tab1 contient le tableau de contingence
-
 tab1 = matrix(tab_disj_comp[1:nrow(df5),1:nint,1],ncol = nint,nrow = nrow(df5))
 
 for (z in 2:dim(tab_disj_comp)[3]){
@@ -111,3 +109,39 @@ for (z in 2:dim(tab_disj_comp)[3]){
   tab1 = cbind(tab1,matrix(tab_disj_comp[1:nrow(df5),1:nint,z],ncol = nint,nrow = nrow(df5)))
   
 }
+
+# On sauvegarde le tableau disjonctif creer et la matrice des intervalles
+# write.csv(tab1,"tableau_disjonctif_complet.csv")
+# write.csv(interv,"intervalles_variable.csv")
+
+#On importe le tableau disjonctif
+
+disjonct = read.csv("tableau_disjonctif_csv.csv", header = T,sep = ";")
+
+
+# ACM
+# acm=dudi.acm(disjonct[,1:18])
+# 
+# scatter(acm)
+# 
+# s.label(acm$li)
+# 
+# s.arrow(acm$co)
+# 
+# plot(acm)
+
+# ACM avec Factomine R
+
+library(FactoMineR)
+
+# ACM
+res.mca = MCA(disjonct)
+
+plot.MCA(res.mca,  invisible = "var",cex=0.7)
+plotellipses(res.mca)
+
+#CAH
+res.hcpc = HCPC(res.mca)
+
+# exportation des coordonnées de individus après l'ACM projection sur dim1 et dim2
+write.csv(cbind(res.mca$ind$coord[,1:2],type_etab),"coord_indiv.csv")
