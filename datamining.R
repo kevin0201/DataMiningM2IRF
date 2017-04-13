@@ -1,23 +1,21 @@
 # Data mining projet 
 # M2 semestre 2
-# -----------------------
 
-
+#sthda.com/mca
 
 library(plotly)
 library(classInt)
-library(ade4)
+#library(ade4)
 ############################################
 # Import des données
 ############################################
+
 df = read.csv("Hopitaux.csv")
-dff = df
 boxplot(df[,2:ncol(df)], use.cols = T)
 
 # Nombre de type d'établissement
 
 nbe = length(unique(df[,1]))
-
 
 # Which max trouve l'index de la valeur maximale de la colonne en paramètre,
 # valeur potentiellement abbérante
@@ -27,39 +25,9 @@ nbe = length(unique(df[,1]))
 # Supression de valeurs abérantes
 # Supression de la 504
 
-df2 = df[-which.max(x =df[,"AB"]),]
-
-#Supression de la 527
-df3 = df2[-which.max(x =df2[,"AN"]),]
-df3 = df3[-which.max(x =df3[,"AN"]),]
-
-df4 = df3[-which.max(x =df3[,"AC"]),]
-
-df5 = df4[-which.max(x =df4[,"AS"]),]
-df5 = df5[-which.max(x =df5[,"AI"]),]
-df5 = df5[-which.max(x =df5[,"AI"]),]
-
-# On sauvegarde puis on se debarasse de la colonne du type d'établissement
-type_etab = as.data.frame( df5[,1])
-
+df5 = df[-which.max(x = df[, "AB"]),][-which.max(x = df[, "AN"]),][-which.max(x = df[, "AN"]),][-which.max(x = df[, "AC"]),][-which.max(x = df[, "AS"]),][-which.max(x = df[, "AI"]),][-which.max(x = df[, "AI"]),]
+df5typeeta = df5[, 1]
 df5 = df5[,-1]
-
-# Observation du boxplot 
-
-# boxplot(df5[,2:ncol(df2)], use.cols = T)
-
-# for (i in 1:ncol(df5)){
-#   
-#   a[i] = classIntervals(df[,1],style = "hclust",n=9)
-#   
-# }
-
-# p <- plot_ly(y = ~df5[,1], type = "box") 
-# 
-# for (j in 2:23){
-#   p=p %>% add_trace(y = ~df5[,j])
-#   
-# }
 
 #  Nombre d'intervalles nint = 9
 nint=9
@@ -129,49 +97,45 @@ for (z in 2:dim(tab_disj_comp)[3]){
 # On change les noms de colonnes du tableau disjonctif complet
 tab1 = `colnames<-`(tab1,nomvarint)
 
-# On sauvegarde le tableau disjonctif creer et la matrice des intervalles
- # write.csv(tab1,"tableau_disjonctif_complet.csv")
- # write.csv(interv,"intervalles_variable.csv")
-
-#On importe le tableau disjonctif
-
-# disjonct = read.csv("tableau_disjonctif_complet.csv", header = T,sep = ";")
-
-
-# ACM
-# acm=dudi.acm(disjonct[,1:18])
-# 
-# scatter(acm)
-# 
-# s.label(acm$li)
-# 
-# s.arrow(acm$co)
-# 
-# plot(acm)
-
+#---------------------------
 # ACM avec Factomine R
 
 library(FactoMineR)
-
+library(factoextra)
 # ACM
-res.mca = MCA(tab1)
+res.mca = MCA(tab1, graph = FALSE, ncp = 5)
+
+# plot variance bring per axe
+fviz_screeplot(res.mca)
+
+# plot variable + indi
+fviz_mca_biplot(res.mca)
+
+# plot indiv only
+fviz_mca_ind(res.mca)
+
+# plot variable only
+fviz_mca_var(res.mca)
 
 #plot.MCA(res.mca,  invisible = "var",cex=0.7)
-plotellipses(res.mca)
+#plotellipses(res.mca)
 
 #CAH
 res.hcpc = HCPC(res.mca)
 
 # exportation des coordonnées de individus après l'ACM projection sur dim1 et dim2
-write.csv(cbind(res.mca$ind$coord[,1:2],type_etab),"coord_indiv.csv")
+# write.csv(cbind(res.mca$ind$coord[,1:2],type_etab),"coord_indiv.csv")
 
+#----------------------------------------------
+# Prediction sur les données brut init
 library(rpart)
 library(party)
+
 
 ## Create a formula for a model with a large number of variables:
 # formule : prediction du type d'établissement en fonction des autres variables quantitaves
 # application du dataframe initiale
-(fmla <- as.formula(paste("Type.Etablissement ~ ", paste(colnames(df5), collapse = "+"))))
+fmla <- as.formula(paste("Type.Etablissement ~ ", paste(colnames(df5), collapse = "+")))
 
 # creation de l'arbre à partir, formule, et données
 type_eta = ctree(fmla, data = dff)
@@ -186,3 +150,31 @@ plot(type_eta, type = "simple")
 # prédiction à partir de l'arbre de prédiction
 
 table(predict(type_eta), dff$Type.Etablissement)
+
+#----------------------------------
+# Prédiction sur les données de acm
+acm_ind_coord = data.frame(res.mca$ind$coord)
+
+# On change les noms des colonnes pour pouvoir creer une formule pour la prédiction
+
+acm_ind_coord = `colnames<-`(acm_ind_coord, c('a', 'b', 'c', 'd', 'e'))
+
+# On colle les types d'établissement au tableau des coordonnées des ind à l'issue du mca pour generer l'arbre de décision
+acm_ind_coord['Type.Etablissement'] = df5typeeta
+
+# On cré la formule qui va prédire le type d'établissement en fonction des coordonnées fournies par le mca
+(fmla <- as.formula(paste("Type.Etablissement ~ ", paste(c('a', 'b', 'c', 'd', 'e'), collapse = "+"))))
+
+# creation de l'arbre à partir, formule, et données
+type_eta_mca = ctree(fmla, data = acm_ind_coord)
+
+print(type_eta_mca)
+
+# plot de l'arbre de décision
+plot(type_eta_mca)
+
+plot(type_eta_mca, type = "simple")
+
+# prédiction à partir de l'arbre de prédiction
+df5$Type.Etablissement = df5typeeta
+table(predict(type_eta_mca), df5$Type.Etablissement)
