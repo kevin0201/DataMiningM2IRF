@@ -84,7 +84,7 @@ for (i in 1:ncol(df5)){
 
 # Creation des noms de la colonne de la matrice disjonctif
 # Les nom sont de la forme [borne inf nom_variable borne supp]
-nomvarint = matrix(0,ncol(df5),ncol(interv)-1)
+nomvarint = matrix(0, nrow = ncol(df5), ncol =ncol(interv) - 1)
 
 for(i in 1:ncol(df5)){
   
@@ -95,7 +95,7 @@ for(i in 1:ncol(df5)){
   }
 }
 
-nomvarint = matrix(nomvarint,1,9*23)
+nomvarint = as.vector(t(nomvarint))
 
 # Construction du tableau disjonctif complet
 #  < 5 ">
@@ -164,3 +164,25 @@ res.hcpc = HCPC(res.mca)
 
 # exportation des coordonnées de individus après l'ACM projection sur dim1 et dim2
 write.csv(cbind(res.mca$ind$coord[,1:2],type_etab),"coord_indiv.csv")
+
+library(rpart)
+library(party)
+
+## Create a formula for a model with a large number of variables:
+# formule : prediction du type d'établissement en fonction des autres variables quantitaves
+# application du dataframe initiale
+(fmla <- as.formula(paste("Type.Etablissement ~ ", paste(colnames(df5), collapse = "+"))))
+
+# creation de l'arbre à partir, formule, et données
+type_eta = ctree(fmla, data = dff)
+
+print(type_eta)
+
+# plot de l'arbre de décision
+plot(type_eta)
+
+plot(type_eta, type = "simple")
+
+# prédiction à partir de l'arbre de prédiction
+
+table(predict(type_eta), dff$Type.Etablissement)
