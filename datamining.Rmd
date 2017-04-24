@@ -219,24 +219,6 @@ head(tab1)
 ```
 
 ```{r}
-tab1["Type.Etablissement"]=df_propre$Type.Etablissement
-length(unique(tab1$Type.Etablissement))
-unique(tab1$Type.Etablissement)
-nomvarint_mat = matrix(nomvarint,nrow = 23, ncol = 9)
-
-tab1_sauve = tab1
-
-for (i in 1:nrow(tab1)){
-  for(j in 1:ncol(tab1)){
-    if (tab1[i,j] == "Oui"){
-      tab1[i,j]=1
-    }else{
-      tab1[i,j]=0
-    }
-  }
-}
-
-for ()
 
 
 ```
@@ -313,7 +295,7 @@ acm_ind_coord = data.frame(res.mca$ind$coord)
 acm_ind_coord = `colnames<-`(acm_ind_coord, c('a', 'b', 'c', 'd', 'e'))
 
 # On colle les types d'établissement au tableau des coordonnées des ind à l'issue du mca pour generer l'arbre de décision
-acm_ind_coord['Type.Etablissement'] = df5typeeta
+acm_ind_coord['Type.Etablissement'] = df_propre$Type.Etablissement
 
 # On cré la formule qui va prédire le type d'établissement en fonction des coordonnées fournies par le mca
 fmla <- as.formula(paste("Type.Etablissement ~ ", paste(c('a', 'b', 'c', 'd', 'e'), collapse = "+")))
@@ -334,12 +316,12 @@ plot(type_eta_mca, type = "simple")
 ```{r}
 # prédiction à partir de l'arbre de prédiction
 # df5$Type.Etablissement = df5typeeta
-table(predict(type_eta_mca), df5typeeta)
+table(predict(type_eta_mca), df_propre$Type.Etablissement)
 ```
 
 ## Taux de réussite de la prédiction
 
 ```{r}
-(sum(predict(type_eta_mca)==df5typeeta)) / nrow(df5)
+(sum(predict(type_eta_mca)==df_propre$Type.Etablissement)) / nrow(df_propre)
 ```
 
