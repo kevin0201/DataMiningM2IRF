@@ -48,6 +48,92 @@ df5typeeta = df5[, 1]
 df5 = df5[,-1]
 ```
 
+# Arbres de décision et Prédiction des données initiales
+
+## Arbre de décision des données initiales
+
+```{r}
+
+# Prediction sur les données brut init
+library(rpart)
+library(party)
+
+
+## Create a formula for a model with a large number of variables:
+# formule : prediction du type d'établissement en fonction des autres variables quantitaves
+# application du dataframe initiale
+fmla <- as.formula(paste("Type.Etablissement ~ ", paste(colnames(df5), collapse = "+")))
+
+# creation de l'arbre à partir, formule, et données
+type_eta = ctree(fmla, data = df)
+
+# print(type_eta)
+
+# plot de l'arbre de décision
+plot(type_eta, type = "simple")
+
+```
+
+## Prédiction sur les données initiales
+
+```{r}
+
+# prédiction à partir de l'arbre de prédiction
+
+table(predict(type_eta), df$Type.Etablissement)
+
+```
+
+## Taux de succès de prédiction
+
+```{r}
+(sum(predict(type_eta)==df$Type.Etablissement)) / nrow(df)
+```
+
+## Suppression de valeurs jugées abérantes de la prédiction
+
+Après avoir construit un arbre à partir des donnée initiales comme données d'apprentissage, on remarque un taux de d'échec de prédiction. Supposons que les individus que l'arbre n'a pas prédit avec succès sont des individus abérants. Il suffit donc de les éliminer, et d'obtenir une base de données plus ou moins propre. A partir de cette nouvelle base, on reconstruit un arbre et on évalue le taux de succès de prédiction afin de la comparer au premier
+
+```{r}
+
+df_propre = df[df[,1]==predict(type_eta),]
+
+## Create a formula for a model with a large number of variables:
+# formule : prediction du type d'établissement en fonction des autres variables quantitaves
+# application du dataframe initiale
+fmla <- as.formula(paste("Type.Etablissement ~ ", paste(colnames(df5), collapse = "+")))
+
+# creation de l'arbre à partir, formule, et données
+type_eta_propre = ctree(fmla, data = df_propre)
+
+# print(type_eta)
+
+# plot de l'arbre de décision
+# plot(type_eta_propre, type = "simple")
+
+# prédiction à partir de l'arbre de prédiction
+
+table(predict(type_eta_propre), df_propre$Type.Etablissement)
+
+```
+
+
+```{r}
+
+(sum(predict(type_eta_propre)==df_propre$Type.Etablissement)) / nrow(df_propre)
+
+
+```
+
+Le taux de prédiction est de $ 95% $ pour des données "nétoyées" contre $ 82% $, soit un apport de $ 13% $ de succès. Considérons ensuite ces données comme base.
+
+```{r}
+
+df5 = df_propre[,-1]
+
+```
+
+
 # Construction des intervalles pour chaque variable
 
 Chaque variable est divisée en 9 intervalles, qui vont contituer des modalités pour rendre les données qualitatives.
@@ -132,6 +218,30 @@ head(tab1)
 
 ```
 
+```{r}
+tab1["Type.Etablissement"]=df_propre$Type.Etablissement
+length(unique(tab1$Type.Etablissement))
+unique(tab1$Type.Etablissement)
+nomvarint_mat = matrix(nomvarint,nrow = 23, ncol = 9)
+
+tab1_sauve = tab1
+
+for (i in 1:nrow(tab1)){
+  for(j in 1:ncol(tab1)){
+    if (tab1[i,j] == "Oui"){
+      tab1[i,j]=1
+    }else{
+      tab1[i,j]=0
+    }
+  }
+}
+
+for ()
+
+
+```
+
+
 # ACM
 
 
@@ -189,85 +299,6 @@ fviz_mca_var(res.mca)
 # exportation des coordonnées de individus après l'ACM projection sur dim1 et dim2
 # write.csv(cbind(res.mca$ind$coord[,1:2],type_etab),"coord_indiv.csv")
 ```
-
-# Arbres de décision et Prédiction des données initiales
-
-## Arbre de décision des données initiales
-
-```{r}
-
-# Prediction sur les données brut init
-library(rpart)
-library(party)
-
-
-## Create a formula for a model with a large number of variables:
-# formule : prediction du type d'établissement en fonction des autres variables quantitaves
-# application du dataframe initiale
-fmla <- as.formula(paste("Type.Etablissement ~ ", paste(colnames(df5), collapse = "+")))
-
-# creation de l'arbre à partir, formule, et données
-type_eta = ctree(fmla, data = df)
-
-# print(type_eta)
-
-# plot de l'arbre de décision
-plot(type_eta, type = "simple")
-
-```
-
-## Prédiction sur les données initiales
-
-```{r}
-
-# prédiction à partir de l'arbre de prédiction
-
-table(predict(type_eta), df$Type.Etablissement)
-
-```
-
-## Taux de succès de prédiction
-
-```{r}
-(sum(predict(type_eta)==df$Type.Etablissement)) / nrow(df)
-```
-
-## Suppression de valeurs jugées abérantes de la prédiction
-
-Après avoir construit un arbre à partir des donnée initiales comme données d'apprentissage, on remarque un taux de d'échec de prédiction. Supposons que les individus que l'arbre n'a pas prédit avec succès sont des individus abérants. Il suffit donc de les éliminer, et d'obtenir une base de données plus ou moins propre. A partir de cette nouvelle base, on reconstruit un arbre et on évalue le taux de succès de prédiction afin de la comparer au premier
-
-```{r}
-
-df_propre = df[df[,1]==predict(type_eta),]
-
-## Create a formula for a model with a large number of variables:
-# formule : prediction du type d'établissement en fonction des autres variables quantitaves
-# application du dataframe initiale
-fmla <- as.formula(paste("Type.Etablissement ~ ", paste(colnames(df5), collapse = "+")))
-
-# creation de l'arbre à partir, formule, et données
-type_eta_propre = ctree(fmla, data = df_propre)
-
-# print(type_eta)
-
-# plot de l'arbre de décision
-# plot(type_eta_propre, type = "simple")
-
-# prédiction à partir de l'arbre de prédiction
-
-table(predict(type_eta_propre), df_propre$Type.Etablissement)
-
-```
-
-
-```{r}
-
-(sum(predict(type_eta_propre)==df_propre$Type.Etablissement)) / nrow(df_propre)
-
-
-```
-
-Le taux de prédiction est de $ 95% $ pour des données "nétoyées" contre $ 82% $, soit un apport de $ 13% $ de succès. Considérons ensuite ces données comme base.
 
 # Arbres de décision et Prédiction des données issues de l'ACM sur les données initiales
 
