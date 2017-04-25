@@ -367,7 +367,7 @@ table(tab1$Type.Etablissement, predict(type_eta_mca, tab1[,1:length(tab1)-1], ty
 
 data_new = read.csv("tab_contingences_extr.csv", sep = ";")
 
-res.mca2 = MCA(data_new[,2:length(data_new)], graph = FALSE, ncp = 2)
+res.mca2 = MCA(data_new[,2:length(data_new)], graph = FALSE, ncp = 5)
 
 # plot variance bring per axe
 fviz_screeplot(res.mca2)
@@ -422,5 +422,50 @@ table(data_new$Type.Etablissement, predict(type_eta_mca, data_new[,2:length(data
 
 (sum(predict(type_eta_mca, data_new[,2:length(data_new)], type="class")==data_new$Type.Etablissement)) / nrow(data_new)
 
+```
+
+# Predic acm
+
+```{r}
+# Prédiction sur les données de acm
+acm_ind_coord = data.frame(res.mca2$ind$coord)
+
+# On change les noms des colonnes pour pouvoir creer une formule pour la prédiction
+
+acm_ind_coord = `colnames<-`(acm_ind_coord, c('a', 'b', 'c', 'd', 'e'))
+
+# On colle les types d'établissement au tableau des coordonnées des ind à l'issue du mca pour generer l'arbre de décision
+acm_ind_coord['Type.Etablissement'] = data_new$Type.Etablissement
+
+# On cré la formule qui va prédire le type d'établissement en fonction des coordonnées fournies par le mca
+fmla <- as.formula(paste("Type.Etablissement ~ ", paste(c('a', 'b', 'c', 'd', 'e'), collapse = "+")))
+
+# creation de l'arbre à partir, formule, et données
+type_eta_mca = ctree(fmla, data = acm_ind_coord)
+
+table(predict(type_eta_mca), data_new$Type.Etablissement)
+
+(sum(predict(type_eta_mca)==data_new$Type.Etablissement)) / nrow(data_new)
+```
+
+
+```{r}
+# K-Means Clustering with 5 clusters
+
+mydata = acm_ind_coord
+fit <- kmeans(mydata[,1:2], 9)
+
+# Cluster Plot against 1st 2 principal components
+
+# vary parameters for most readable graph
+library(cluster) 
+clusplot(mydata, fit$cluster, color=TRUE, shade=TRUE, 
+  	labels=4, lines=0)
+
+# Centroid Plot against 1st 2 discriminant functions
+library(fpc)
+fpc::plotcluster(mydata[,1:2], fit$cluster)
+
+#table(predict(type_eta_mca), df_propre$Type.Etablissement)
 ```
 
