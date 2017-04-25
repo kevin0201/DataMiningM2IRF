@@ -172,7 +172,7 @@ for(i in 1:ncol(df5)){
   
   for(j in 1:ncol(interv)-1){
     
-    nomvarint[i,j] = paste(interv[i,j],colnames(df5)[i],interv[i,j+1])
+    nomvarint[i,j] = paste(interv[i,j],colnames(df5)[i],interv[i,j+1], sep = "")
     
   }
 }
@@ -324,4 +324,65 @@ table(predict(type_eta_mca), df_propre$Type.Etablissement)
 ```{r}
 (sum(predict(type_eta_mca)==df_propre$Type.Etablissement)) / nrow(df_propre)
 ```
+
+## Prédiction sur le tableau de valeurs qualitatifs...
+
+```{r}
+
+library(rpart.plot)
+
+tab1["Type.Etablissement"] = df_propre["Type.Etablissement"]
+
+fmla <- as.formula(paste("Type.Etablissement ~ ", paste(sprintf("`%s`", colnames(tab1[,1:length(tab1)-1])), collapse = "+")))
+
+# prédit type.e... en fontion de toutes les autres variables...
+type_eta_mca = rpart(fmla,data=tab1,control=rpart.control(minsplit=0,cp=-100))
+
+prp(type_eta_mca)
+
+```
+
+```{r}
+# Performances
+
+plotcp(type_eta_mca)
+```
+
+
+```{r}
+
+predict(type_eta_mca, tab1[,1:length(tab1)-1], type="class")
+
+table(tab1$Type.Etablissement, predict(type_eta_mca, tab1[,1:length(tab1)-1], type="class"))
+
+
+(sum(predict(type_eta_mca, tab1[,1:length(tab1)-1], type="class")==df_propre$Type.Etablissement)) / nrow(df_propre)
+
+```
+
+# Données extraites
+
+```{r}
+
+data_new = read.csv("tab_contingences_extr.csv", sep = ";")
+
+res.mca2 = MCA(data_new, graph = FALSE, ncp = 2)
+
+# plot variance bring per axe
+fviz_screeplot(res.mca2)
+
+fviz_mca_biplot(res.mca2)
+
+# plot indiv only
+fviz_mca_ind(res.mca2)
+
+# plot variable only
+fviz_mca_var(res.mca2)
+
+plot(res.mca2$ind$coord)
+
+# res.hcpc = HCPC(res.mca2)
+
+```
+
 
