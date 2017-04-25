@@ -351,8 +351,6 @@ plotcp(type_eta_mca)
 
 ```{r}
 
-predict(type_eta_mca, tab1[,1:length(tab1)-1], type="class")
-
 table(tab1$Type.Etablissement, predict(type_eta_mca, tab1[,1:length(tab1)-1], type="class"))
 
 
@@ -363,10 +361,13 @@ table(tab1$Type.Etablissement, predict(type_eta_mca, tab1[,1:length(tab1)-1], ty
 # Données extraites
 
 ```{r}
+# On nettoie les variables qualitatives... On vire les variables trop commune à tous les indivs
+# on vire les variables avec 1 seul indiv et on vire l'indiv
+# on vire les variables avec 0 indivs
 
 data_new = read.csv("tab_contingences_extr.csv", sep = ";")
 
-res.mca2 = MCA(data_new, graph = FALSE, ncp = 2)
+res.mca2 = MCA(data_new[,2:length(data_new)], graph = FALSE, ncp = 2)
 
 # plot variance bring per axe
 fviz_screeplot(res.mca2)
@@ -374,15 +375,52 @@ fviz_screeplot(res.mca2)
 fviz_mca_biplot(res.mca2)
 
 # plot indiv only
-fviz_mca_ind(res.mca2)
+fviz_mca_ind(res.mca2, label = "none")
 
 # plot variable only
 fviz_mca_var(res.mca2)
-
-plot(res.mca2$ind$coord)
 
 # res.hcpc = HCPC(res.mca2)
 
 ```
 
+```{r}
+
+dd <- dist(res.mca2$ind$coord, method = "euclidean")
+hc <- hclust(dd, method = "ward.D2")
+
+hcd <- as.dendrogram(hc)
+
+# Define nodePar
+nodePar <- list(lab.cex = 0.6, pch = c(NA, 19), 
+                cex = 0.7, col = "blue")
+# Customized plot; remove labels
+plot(hcd, ylab = "Height", nodePar = nodePar, leaflab = "none")
+
+library(ape)
+
+plot(as.phylo(hc), type = "fan")
+
+```
+# Arbre données remodifiées pour ACM
+
+```{r}
+
+#data_new["Type.Etablissement"] = df_propre["Type.Etablissement"]
+
+fmla <- as.formula(paste("Type.Etablissement ~ ", paste(sprintf("`%s`", colnames(data_new[,2:length(data_new)])), collapse = "+")))
+
+# prédit type.e... en fontion de toutes les autres variables...
+ type_eta_mca = rpart(fmla,data=data_new,control=rpart.control(minsplit=2,cp=0))
+
+# type_eta_mca = rpart(fmla,data=data_new)
+
+prp(type_eta_mca)
+
+table(data_new$Type.Etablissement, predict(type_eta_mca, data_new[,2:length(data_new)], type="class"))
+
+
+(sum(predict(type_eta_mca, data_new[,2:length(data_new)], type="class")==data_new$Type.Etablissement)) / nrow(data_new)
+
+```
 
