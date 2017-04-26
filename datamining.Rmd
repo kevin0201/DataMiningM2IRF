@@ -497,6 +497,12 @@ table(predict(type_eta_mca), data_new$Type.Etablissement)
 
 ## kmeans, arbre de classification, et clustering.
 
+On effectue un clustering des données d'ACM qui sont les coordonnées des individus dans le plan, et on fait des clusters. 
+
+**Interprétation graphique** :
+Ici on effectue une comparaison de nuage de point. On veut savoir si les cluster se superpose au type d'établissement. Chaque cluster correspond t-il à un type d'établissement, vice-versa? les cluster sont t-il homogènès?
+
+
 ```{r}
 # K-Means Clustering with 5 clusters
 
@@ -514,7 +520,11 @@ ggplot(mydata, aes(a, b, color = mydata$Type.Etablissement)) +
 fit <- kmeans(mydata[,1:2], 9)
 
 
+```
 
+Ici on va visualiser les cluster obtenues 
+
+```{r}
 # Cluster Plot against 1st 2 principal components
 
 # vary parameters for most readable graph
