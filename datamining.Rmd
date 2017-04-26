@@ -7,6 +7,11 @@ output:
 
 # Importation des données
 
+On importe tout d'abord les données, il le faut bien, c'est dessus qu'on travail!
+On a une base de données d'hopitaux anonimées, qui donne seulement leur type et leur quantité de prestation dans 23 domaines.
+l'objectif est de trouver une classification des données qui correspondra au 9 types d'établissement, et de retrouver le type d'un établissement à partir des autres variables. Prédiction du type d'établissement à partir des quantité de prestations.
+
+(data version 0)
 
 ```{r}
 # Data mining projet 
@@ -52,6 +57,8 @@ df5 = df5[,-1]
 
 ## Arbre de décision des données initiales
 
+on construit ici un arbre de décision sur les données, question d'évaluer les performances d'un arbre de décision.
+
 ```{r}
 
 # Prediction sur les données brut init
@@ -76,6 +83,8 @@ plot(type_eta, type = "simple")
 
 ## Prédiction sur les données initiales
 
+Tableau de confusion pour avoir une idée des performances de l'arbre et de la prédiction qu'elle engendre.
+
 ```{r}
 
 # prédiction à partir de l'arbre de prédiction
@@ -86,6 +95,8 @@ table(predict(type_eta), df$Type.Etablissement)
 
 ## Taux de succès de prédiction
 
+Calcul du taux de succès de la prédiction
+
 ```{r}
 (sum(predict(type_eta)==df$Type.Etablissement)) / nrow(df)
 ```
@@ -93,6 +104,8 @@ table(predict(type_eta), df$Type.Etablissement)
 ## Suppression de valeurs jugées abérantes de la prédiction
 
 Après avoir construit un arbre à partir des donnée initiales comme données d'apprentissage, on remarque un taux de d'échec de prédiction. Supposons que les individus que l'arbre n'a pas prédit avec succès sont des individus abérants. Il suffit donc de les éliminer, et d'obtenir une base de données plus ou moins propre. A partir de cette nouvelle base, on reconstruit un arbre et on évalue le taux de succès de prédiction afin de la comparer au premier
+
+(data version 1)
 
 ```{r}
 
@@ -117,7 +130,7 @@ table(predict(type_eta_propre), df_propre$Type.Etablissement)
 
 ```
 
-
+le taux de succès que l'on obtient à partir d'un arbre que l'on a construit sur des données privées des individus dont la prédiction a été un à partir du premier arbre. s'améliore, on a un gain d'au moins 10% de succès de prédiction et on approche les 100% de succès.
 ```{r}
 
 (sum(predict(type_eta_propre)==df_propre$Type.Etablissement)) / nrow(df_propre)
@@ -134,9 +147,15 @@ df5 = df_propre[,-1]
 ```
 
 
+**Dans la suite on considère les données sans les individus qui n'ont pas pu être prédit par l'arbre de décisions. On les suppose abérante.**
+
 # Construction des intervalles pour chaque variable
 
+On change de reférentiel, afin de pouvoir observer un nuage de point par réduction de dimension, mieux observer les distances, et tenter une amérlioration de l'arbre de décision.
+
 Chaque variable est divisée en 9 intervalles, qui vont contituer des modalités pour rendre les données qualitatives.
+
+(data version 2)
 
 ```{r}
 #  Nombre d'intervalles nint = 9
@@ -162,6 +181,8 @@ for (i in 1:ncol(df5)){
 ```
 
 # Transformation du tableau de données initial en tableau disjontif complet pour l'ACM.
+
+On affecte les individus aux classes de varibles. Et on crée des noms de colonnes plus intuitives pour chaque intervalle de variable.
 
 ```{r}
 # Creation des noms de la colonne de la matrice disjonctif
@@ -226,8 +247,11 @@ head(tab1)
 
 # ACM
 
+On effectue une ACM sur les données qualitatifs obtenues à partir des données quantitatives.
 
 ## Variance apportée par axe
+
+
 
 ```{r}
 # ACM avec Factomine R
@@ -269,22 +293,12 @@ fviz_mca_var(res.mca)
 
 ```
 
-## Classification des données de l'ACM
-
-```{r}
-#plot.MCA(res.mca,  invisible = "var",cex=0.7)
-#plotellipses(res.mca)
-
-# CAH
-# res.hcpc = HCPC(res.mca)
-
-# exportation des coordonnées de individus après l'ACM projection sur dim1 et dim2
-# write.csv(cbind(res.mca$ind$coord[,1:2],type_etab),"coord_indiv.csv")
-```
 
 # Arbres de décision et Prédiction des données issues de l'ACM sur les données initiales
 
 ## Arbre de décision
+
+A partir de l'ACM on obtients les coordonnées des individus en dimension réduite. On tente un arbre de décision sur ces coordonnées.
 
 ```{r}
 # Prédiction sur les données de acm
@@ -313,6 +327,8 @@ plot(type_eta_mca, type = "simple")
 
 ## Prédiction à partir de l'arbre (ACM)
 
+Prédiction à partir de l'arbre. Pour une comparaison avec les l'arbre des données quantitatives.
+
 ```{r}
 # prédiction à partir de l'arbre de prédiction
 # df5$Type.Etablissement = df5typeeta
@@ -321,11 +337,15 @@ table(predict(type_eta_mca), df_propre$Type.Etablissement)
 
 ## Taux de réussite de la prédiction
 
+Taux de réussite de la prédiction à partir de l'arbre obtenue sur les ACM.
+
 ```{r}
 (sum(predict(type_eta_mca)==df_propre$Type.Etablissement)) / nrow(df_propre)
 ```
 
 ## Prédiction sur le tableau de valeurs qualitatifs...
+
+On construit un arbre de décision sur les données qualitatives (Sans ACM). On en profite pour tester le package rpart, les autres arbres ont été construit avec le package party. Rpart avec rpart.plot permet de désinner arbre plus beau.  
 
 ```{r}
 
@@ -342,12 +362,14 @@ prp(type_eta_mca)
 
 ```
 
+On évalue ici les performances de l'arbre en fonction du nombre de feuille, plus de feuille peut être signe de sur-apprentissage donc de baisse de performance de prédiction, vice-versa.  
 ```{r}
 # Performances
 
 plotcp(type_eta_mca)
 ```
 
+Tableau de confusion et taux de succès de prédiction, on a pas de meilleur performance que l'arbre de décision sur les données initiales, ou privé des indivdus "aberrants."
 
 ```{r}
 
@@ -358,7 +380,17 @@ table(tab1$Type.Etablissement, predict(type_eta_mca, tab1[,1:length(tab1)-1], ty
 
 ```
 
-# Données extraites
+# Données renéttoyées : ACM, arbre de décision, CAH, kmeans
+
+On renettoie encore une fois les données. on supprime les variables qualitatives inutiles, c'est à dire les variables qui n'ont que très très peu d'individus ou pas, ou les variables qui ont un trop grand nombre d'individus (ce n'est pas une variable distinctive dans un contexte ou l'on cherche la distinction des individus)
+
+On a nettoyé les données sur excel de façon manuelle. Mais le processus peut très bien être fait sur R ou python.
+
+On repète le processus exécuté sur la version de données précédente.
+
+(data version 3)
+
+## ACM sur les données version 3
 
 ```{r}
 # On nettoie les variables qualitatives... On vire les variables trop commune à tous les indivs
@@ -366,6 +398,8 @@ table(tab1$Type.Etablissement, predict(type_eta_mca, tab1[,1:length(tab1)-1], ty
 # on vire les variables avec 0 indivs
 
 data_new = read.csv("tab_contingences_extr.csv", sep = ";")
+
+head(data_new)
 
 res.mca2 = MCA(data_new[,2:length(data_new)], graph = FALSE, ncp = 5)
 
@@ -378,11 +412,13 @@ fviz_mca_biplot(res.mca2)
 fviz_mca_ind(res.mca2, label = "none")
 
 # plot variable only
-fviz_mca_var(res.mca2)
+fviz_mca_var(res.mca2, label = "none")
 
 # res.hcpc = HCPC(res.mca2)
 
 ```
+
+## CAH 
 
 ```{r}
 
@@ -397,12 +433,18 @@ nodePar <- list(lab.cex = 0.6, pch = c(NA, 19),
 # Customized plot; remove labels
 plot(hcd, ylab = "Height", nodePar = nodePar, leaflab = "none")
 
-library(ape)
+# dentrogrape circulaire
 
-plot(as.phylo(hc), type = "fan")
+# library(ape)
+# 
+# plot(as.phylo(hc), type = "fan")
 
 ```
-# Arbre données remodifiées pour ACM
+
+
+## Arbre de décision (data version 3)
+
+Arbre, prédiction et performance de la prédiction
 
 ```{r}
 
@@ -424,7 +466,9 @@ table(data_new$Type.Etablissement, predict(type_eta_mca, data_new[,2:length(data
 
 ```
 
-# Predic acm
+## Predic acm
+
+prédiction sur les données de l'acm
 
 ```{r}
 # Prédiction sur les données de acm
@@ -441,7 +485,9 @@ acm_ind_coord['Type.Etablissement'] = data_new$Type.Etablissement
 fmla <- as.formula(paste("Type.Etablissement ~ ", paste(c('a', 'b', 'c', 'd', 'e'), collapse = "+")))
 
 # creation de l'arbre à partir, formule, et données
-type_eta_mca = ctree(fmla, data = acm_ind_coord)
+type_eta_mca = rpart(fmla, data = acm_ind_coord, control=rpart.control(minsplit=2,cp=0))
+
+prp(type_eta_mca)
 
 table(predict(type_eta_mca), data_new$Type.Etablissement)
 
@@ -449,11 +495,25 @@ table(predict(type_eta_mca), data_new$Type.Etablissement)
 ```
 
 
+## kmeans, arbre de classification, et clustering.
+
 ```{r}
 # K-Means Clustering with 5 clusters
 
 mydata = acm_ind_coord
+
+clusters <- hclust(dist(mydata[,1:2]))
+
+clusterCut <- cutree(clusters,9)
+
+table(clusterCut, mydata$Type.Etablissement)
+
+ggplot(mydata, aes(a, b, color = mydata$Type.Etablissement)) + 
+  geom_point(alpha = 0.4, size = 3.5) + geom_point(col = clusterCut)
+
 fit <- kmeans(mydata[,1:2], 9)
+
+
 
 # Cluster Plot against 1st 2 principal components
 
